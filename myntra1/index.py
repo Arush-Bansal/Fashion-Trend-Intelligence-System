@@ -4,8 +4,8 @@ import json
 from imageDownload import saveImage
 
 TIME_DELAY = 0
-# PAGE_COUNT = 4
-PAGE_COUNT = 1
+PAGE_COUNT = 4
+# PAGE_COUNT = 1
 
 def dressUrl(page : int) : 
     return f"https://www.myntra.com/dresses?f=Gender%3Amen%20women%2Cwomen&p={page}"
@@ -42,12 +42,12 @@ def productDetails(url : str, driver : webdriver.Chrome):
     specs = specToObj(driver.execute_script("return [...document.querySelectorAll('.index-row')].map(ele => ele.innerText)"))
      
     imageURL = driver.execute_script("return document.querySelector('.image-grid-image').style.backgroundImage").strip().split('"')[1]
-    rating = driver.execute_script("return document.querySelector('.index-averageRating').innerText")
-    varifiedUsers = driver.execute_script("return document.querySelector('.index-countDesc').innerText").split()[0]
+    rating = driver.execute_script("return (document.querySelector('.index-averageRating') !== null) ? document.querySelector('.index-averageRating').innerText : -1")
+    varifiedUsers = driver.execute_script("return (document.querySelector('.index-countDesc') !==null) ? document.querySelector('.index-countDesc').innerText : 0")
+    if type(varifiedUsers) == str : varifiedUsers = varifiedUsers.split()[0]
 
     saveImage(imageURL, productTitle)
 
-    # TODO Saving the images
     return {
         "imageURL" : imageURL,
         "price" : price,
@@ -61,14 +61,20 @@ def productDetails(url : str, driver : webdriver.Chrome):
 
 
 driver = webdriver.Chrome("chromedriver")
-# driver.get("https://www.google.com")
-# time.sleep(TIME_DELAY)
 productURLs = []
 for i in range(1, PAGE_COUNT + 1):
     productURLs.extend(getProductLinks(dressUrl(i), driver))
+for i in range(1, PAGE_COUNT + 1):
+    productURLs.extend(getProductLinks(topsUrl(i), driver))
 
 with open("data.json", "w") as json_file:
-    data = [productDetails(productURLs[0], driver), productDetails(productURLs[1], driver)]
+    data = []
+    # data.append(productDetails(productURLs[0], driver))
+    # data.append(productDetails(productURLs[1], driver))
+    # data.append(productDetails(productURLs[2], driver))
+    # data.append(productDetails(productURLs[3], driver))
+    for url in productURLs:
+        data.append(productDetails(url, driver))
     json.dump(data, json_file)
 
 driver.quit()
